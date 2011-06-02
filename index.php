@@ -22,11 +22,31 @@ if( $conn === FALSE )
 	die( FormatErrors( sqlsrv_errors() ) );
 }
 
-$tsql = '
+if ( empty( $_GET[ 'table' ] ) )
+{
+	$t_sql = '
 SELECT name, create_date, modify_date
-FROM sys.tables';
+FROM sys.tables
+ORDER BY name';
+}
+else
+{
+	if ( empty( $_GET[ 'directory' ] ) )
+	{
+		$_GET[ 'directory' ] = '_:\\';
+	}
 
-$t_queryresult = sqlsrv_query( $conn, $tsql );
+	$t_sql = '
+SELECT Path, Name, Extension, Count, VolumeLabel, Size
+FROM ' . $_GET[ 'table' ] . '
+WHERE ( Path IS NULL AND Name LIKE "' . $_GET[ 'directory' ] . '%" ) OR
+  Path LIKE "' . $_GET[ 'directory' ] . '"
+ORDER BY Path, Name';
+}
+
+$t_sql = str_replace( '"', '\'', $t_sql );
+
+$t_queryresult = sqlsrv_query( $conn, $t_sql );
 
 if ( $t_queryresult === false )
 {
@@ -41,11 +61,11 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 <?php
 	while( $t_row = sqlsrv_fetch_array( $t_queryresult, SQLSRV_FETCH_ASSOC ) )
 	{
+		if ( $t_printed_header === FALSE )
+		{
 ?>
 	<tr>
 <?php
-		if ( $t_printed_header === FALSE )
-		{
 			foreach ( $t_row AS $t_key => $t_value )
 			{
 ?>
@@ -55,19 +75,64 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 			$t_printed_header = TRUE;
 ?>
 	</tr>
-	<tr>
 <?php
 		}
 
-		foreach ( $t_row AS $t_key => $t_value )
+		$t_print_row = TRUE;
+		
+		if ( strlen( $_GET[ 'directory' ] ) < strlen( $t_row[ 'Name' ] ) )
+		{
+			$t_pos_limitcheck = stripos( $t_row[ 'Name' ], '\\', strlen( $_GET[ 'directory' ] ) );
+			if ( $t_pos_limitcheck !== FALSE )
+			{
+//var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
+				$t_pos_limitcheck = stripos( $t_row[ 'Name' ], '\\', $t_pos_limitcheck );
+				if ( $t_pos_limitcheck !== FALSE )
+				{
+//var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
+					$t_pos_limitcheck++;
+					if ( array_key_exists( 'Path', $t_row ) && $t_row[ 'Path' ] === NULL && $t_pos_limitcheck !== strlen( $t_row[ 'Name' ] ) )
+					{
+//var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
+//exit;
+						$t_print_row = FALSE;
+//						echo '<tr><td>row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
+					}
+				}
+			}
+		}
+		
+		if ( $t_print_row === TRUE )
 		{
 ?>
-		<td><?php echo ( ( $t_key === 'name' ) ? '<a href="?table=' . $t_value . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( $t_key === 'name' ) ? '</a>' : NULL ) ?></td>
+	<tr>
+<?php
+			foreach ( $t_row AS $t_key => $t_value )
+			{
+				$t_param = NULL;
+
+				if ( strcasecmp( $t_key, 'name' ) === 0 && ( !isset( $t_row[ 'Path' ] ) ) )
+				{
+					if ( isset( $_GET[ 'directory' ] ) )
+					{
+						$t_print_row = FALSE;
+					}
+
+					$t_param = urlencode( $t_value );
+					if ( !empty( $_GET[ 'table' ] ) )
+					{
+						$t_param = urlencode( $_GET[ 'table' ] ) . '&directory=' . $t_param;
+					}
+				}
+
+?>
+		<td><?php echo ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ) ?></td>
+<?php
+			}
+?>
+</tr>
 <?php
 		}
-?>
-	</tr>
-<?php
 	}
 ?>
 </table>
