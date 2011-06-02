@@ -79,7 +79,7 @@ else
 	}
 
 	$t_sql = '
-SELECT Path, Name, Extension, Count, VolumeLabel, Size
+SELECT Path, Name, Extension, Count, Size
 FROM ' . $_GET[ 'table' ] . '
 WHERE ( Path IS NULL AND Name LIKE N\'' . $t_directory . '%\' ESCAPE \'\\\' ) OR
 	Path LIKE N\'' . $t_directory . '\' ESCAPE \'\\\'
