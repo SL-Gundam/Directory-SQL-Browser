@@ -109,7 +109,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 			foreach ( $t_row AS $t_key => $t_value )
 			{
 ?>
-		<td><?php echo $t_key ?></td>
+		<td nowrap="nowrap"><?php echo $t_key ?></td>
 <?php
 			}
 			$t_printed_header = TRUE;
@@ -132,7 +132,10 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 				
 //var_dump($t_pos_limitcheck, $_GET[ 'directory' ], $t_directory);
 ?>
-	<tr><td></td><td>
+	<tr><td></td><td nowrap="nowrap">
+		<a href="">.</a>
+	</td></tr>
+	<tr><td></td><td nowrap="nowrap">
 		<a href="?table=<?php echo $t_table, '&directory=', urlencode( $t_directory ) ?>">..</a>
 	</td></tr>
 <?php
@@ -153,7 +156,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 //var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
 //exit;
 					$t_print_row = FALSE;
-//					echo '<tr><td>row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
+//					echo '<tr><td nowrap="nowrap">row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
 				}
 			}
 		}
@@ -187,7 +190,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 				}
 
 ?>
-		<td><?php echo ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ) ?></td>
+		<td nowrap="nowrap"><?php echo ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ) ?></td>
 <?php
 			}
 ?>
