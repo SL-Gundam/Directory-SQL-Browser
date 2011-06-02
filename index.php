@@ -12,6 +12,17 @@ Message: ' . $error[ 'message' ] . '<br/>';
 	}
 }
 
+// this function formats the bytes so that they are easily readable.
+function formatbytes( $bytes )
+{
+	$units = array( ' bytes', ' KiB', ' MiB', ' GiB', ' TiB' );
+	for ( $i=0; $bytes > 1024; $i++ )
+	{
+		$bytes /= 1024;
+	}
+	return( round( $bytes, 2 ) . $units[ $i ] );
+}
+
 $serverName = 'SL-SERVER\SQLEXPRESS';
 $connectionOptions = array( 'Database' => 'DirListPro' );
 
@@ -76,28 +87,44 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 ?>
 	</tr>
 <?php
+			if ( isset( $_GET[ 'table' ] ) )
+			{
+				$t_pos_limitcheck = strripos( $_GET[ 'directory' ], '\\', -2 );
+				if ( $t_pos_limitcheck === FALSE )
+				{
+					$t_directory = NULL;
+					$t_table = NULL;
+				}
+				else
+				{
+					$t_directory = substr( $_GET[ 'directory' ], 0, $t_pos_limitcheck + 1 );
+					$t_table = $_GET[ 'table' ];
+				}
+				
+//var_dump($t_pos_limitcheck, $_GET[ 'directory' ], $t_directory);
+?>
+	<tr><td></td><td>
+		<a href="?table=<?php echo $t_table, '&directory=', urlencode( $t_directory ) ?>">..</a>
+	</td></tr>
+<?php
+			}
 		}
 
 		$t_print_row = TRUE;
 		
-		if ( strlen( $_GET[ 'directory' ] ) < strlen( $t_row[ 'Name' ] ) )
+		if ( isset( $_GET[ 'directory' ], $t_row[ 'Name' ] ) && strlen( $_GET[ 'directory' ] ) < strlen( $t_row[ 'Name' ] ) )
 		{
 			$t_pos_limitcheck = stripos( $t_row[ 'Name' ], '\\', strlen( $_GET[ 'directory' ] ) );
 			if ( $t_pos_limitcheck !== FALSE )
 			{
 //var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
-				$t_pos_limitcheck = stripos( $t_row[ 'Name' ], '\\', $t_pos_limitcheck );
-				if ( $t_pos_limitcheck !== FALSE )
+				$t_pos_limitcheck++;
+				if ( array_key_exists( 'Path', $t_row ) && $t_row[ 'Path' ] === NULL && $t_pos_limitcheck !== strlen( $t_row[ 'Name' ] ) )
 				{
 //var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
-					$t_pos_limitcheck++;
-					if ( array_key_exists( 'Path', $t_row ) && $t_row[ 'Path' ] === NULL && $t_pos_limitcheck !== strlen( $t_row[ 'Name' ] ) )
-					{
-//var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
 //exit;
-						$t_print_row = FALSE;
-//						echo '<tr><td>row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
-					}
+					$t_print_row = FALSE;
+//					echo '<tr><td>row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
 				}
 			}
 		}
@@ -123,6 +150,11 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					{
 						$t_param = urlencode( $_GET[ 'table' ] ) . '&directory=' . $t_param;
 					}
+				}
+
+				if ( strcasecmp( $t_key, 'Size' ) === 0 )
+				{
+					$t_value = formatbytes( $t_value );
 				}
 
 ?>
