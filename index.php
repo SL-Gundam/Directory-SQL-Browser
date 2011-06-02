@@ -1,4 +1,14 @@
 <?php
+header("Content-type: text/html; charset=utf-8;\n"); 
+?>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>SQL Directory Browser DirListPro</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8;">
+</head>
+<body>
+<?php
 function FormatErrors( $errors )
 {
 	/* Display errors. */
@@ -8,7 +18,8 @@ function FormatErrors( $errors )
 	{
 		echo 'SQLSTATE: ' . $error[ 'SQLSTATE' ] . '<br/>
 Code: ' . $error[ 'code' ] . '<br/>
-Message: ' . $error[ 'message' ] . '<br/>';
+Message: ' . $error[ 'message' ] . '<br/>
+Query: <pre>' . $GLOBALS[ 't_sql' ] . '</pre>';
 	}
 }
 
@@ -23,8 +34,23 @@ function formatbytes( $bytes )
 	return( round( $bytes, 2 ) . $units[ $i ] );
 }
 
+function escape_sql_query( $p_param )
+{
+	$t_param = $p_param;
+
+	$t_param = str_replace( '\\', '\\\\', $t_param );
+	$t_param = str_replace( '%', '\%', $t_param );
+	$t_param = str_replace( '_', '\_', $t_param );
+	$t_param = str_replace( '[', '\[', $t_param );
+
+	return( $t_param );
+}
+
 $serverName = 'SL-SERVER\SQLEXPRESS';
-$connectionOptions = array( 'Database' => 'DirListPro' );
+$connectionOptions = array(
+	'Database' => 'DirListPro',
+	'CharacterSet' => 'UTF-8',
+);
 
 /* Connect using Windows Authentication. */
 $conn = sqlsrv_connect( $serverName, $connectionOptions );
@@ -44,18 +70,21 @@ else
 {
 	if ( empty( $_GET[ 'directory' ] ) )
 	{
-		$_GET[ 'directory' ] = '_:\\';
+		$_GET[ 'directory' ] = '_:\\\\';
+		$t_directory = $_GET[ 'directory' ];
+	}
+	else
+	{
+		$t_directory = escape_sql_query( $_GET[ 'directory' ] );
 	}
 
 	$t_sql = '
 SELECT Path, Name, Extension, Count, VolumeLabel, Size
 FROM ' . $_GET[ 'table' ] . '
-WHERE ( Path IS NULL AND Name LIKE "' . $_GET[ 'directory' ] . '%" ) OR
-  Path LIKE "' . $_GET[ 'directory' ] . '"
+WHERE ( Path IS NULL AND Name LIKE N\'' . $t_directory . '%\' ESCAPE \'\\\' ) OR
+	Path LIKE N\'' . $t_directory . '\' ESCAPE \'\\\'
 ORDER BY Path, Name';
 }
-
-$t_sql = str_replace( '"', '\'', $t_sql );
 
 $t_queryresult = sqlsrv_query( $conn, $t_sql );
 
@@ -87,7 +116,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 ?>
 	</tr>
 <?php
-			if ( isset( $_GET[ 'table' ] ) )
+			if ( isset( $_GET[ 'table' ], $_GET[ 'directory' ] ) )
 			{
 				$t_pos_limitcheck = strripos( $_GET[ 'directory' ], '\\', -2 );
 				if ( $t_pos_limitcheck === FALSE )
@@ -172,7 +201,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 }
 else
 {
-	echo 'No records.';
+	echo 'No records.<pre>' . $t_sql . '</pre>';
 }
 
 /* Free the statement and connection resources. */
@@ -180,3 +209,5 @@ sqlsrv_free_stmt( $t_queryresult );
 sqlsrv_close( $conn );
 
 ?>
+</body>
+</html>
