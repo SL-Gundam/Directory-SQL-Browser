@@ -64,7 +64,7 @@ if ( empty( $_GET[ 'table' ] ) )
 	$t_sql = '
 SELECT name, create_date, modify_date
 FROM sys.tables
-ORDER BY name';
+ORDER BY ' . ( ( !empty( $_GET[ 'sort' ] ) ) ? $_GET[ 'sort' ] . ' desc, ' : NULL ) . 'name asc';
 }
 else
 {
@@ -83,7 +83,7 @@ SELECT Path, Name, Extension, Count, Size
 FROM ' . $_GET[ 'table' ] . '
 WHERE ( Path IS NULL AND Name LIKE N\'' . $t_directory . '%\' ESCAPE \'\\\' ) OR
 	Path LIKE N\'' . $t_directory . '\' ESCAPE \'\\\'
-ORDER BY Path, Name';
+ORDER BY ' . ( ( !empty( $_GET[ 'sort' ] ) ) ? $_GET[ 'sort' ] . ' desc, ' : NULL ) . 'Path asc, Name asc';
 }
 
 $t_queryresult = sqlsrv_query( $conn, $t_sql );
@@ -107,7 +107,13 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 
 			foreach ( $t_row AS $t_key => $t_value )
 			{
-				echo '<td nowrap="nowrap">', $t_key, '</td>';
+				$t_sort_option = TRUE;
+				if ( strcasecmp( $t_key, 'Path' ) === 0 || strcasecmp( $t_key, 'Name' ) === 0 )
+				{
+					$t_sort_option = FALSE;
+				}
+
+				echo '<th nowrap="nowrap">', ( ( $t_sort_option === TRUE ) ? '<a href="?' . $_SERVER[ 'QUERY_STRING' ] . '&sort=' . urlencode( $t_key ) . '">' : NULL ), $t_key, ( ( $t_sort_option === TRUE ) ? '</a>' : NULL ), '</th>';
 			}
 			$t_printed_header = TRUE;
 
