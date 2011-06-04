@@ -96,26 +96,23 @@ if ( $t_queryresult === false )
 if( sqlsrv_has_rows( $t_queryresult ) )
 {
 	$t_printed_header = FALSE;
-?>
-<table border=1>
-<?php
+
+	echo '<table border=1>';
+
 	while( $t_row = sqlsrv_fetch_array( $t_queryresult, SQLSRV_FETCH_ASSOC ) )
 	{
 		if ( $t_printed_header === FALSE )
 		{
-?>
-	<tr>
-<?php
+			echo '<tr>';
+
 			foreach ( $t_row AS $t_key => $t_value )
 			{
-?>
-		<td nowrap="nowrap"><?php echo $t_key ?></td>
-<?php
+				echo '<td nowrap="nowrap">', $t_key, '</td>';
 			}
 			$t_printed_header = TRUE;
-?>
-	</tr>
-<?php
+
+			echo '</tr>';
+			
 			if ( isset( $_GET[ 'table' ], $_GET[ 'directory' ] ) )
 			{
 				$t_pos_limitcheck = strripos( $_GET[ 'directory' ], '\\', -2 );
@@ -131,14 +128,13 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 				}
 				
 //var_dump($t_pos_limitcheck, $_GET[ 'directory' ], $t_directory);
-?>
-	<tr><td></td><td nowrap="nowrap">
+
+			echo '<tr><td></td><td nowrap="nowrap">
 		<a href="">.</a>
 	</td></tr>
 	<tr><td></td><td nowrap="nowrap">
-		<a href="?table=<?php echo $t_table, '&directory=', urlencode( $t_directory ) ?>">..</a>
-	</td></tr>
-<?php
+		<a href="?table=', $t_table, '&directory=', urlencode( $t_directory ), '">..</a>
+	</td></tr>';
 			}
 		}
 
@@ -156,16 +152,15 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 //var_dump($t_pos_limitcheck, $t_row, $_GET[ 'directory' ] );
 //exit;
 					$t_print_row = FALSE;
-//					echo '<tr><td nowrap="nowrap">row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
+//echo '<tr><td nowrap="nowrap">row hidden: ' . $t_row[ 'Name' ] . '</td></tr>';
 				}
 			}
 		}
 		
 		if ( $t_print_row === TRUE )
 		{
-?>
-	<tr>
-<?php
+			echo '<tr>';
+
 			foreach ( $t_row AS $t_key => $t_value )
 			{
 				$t_param = NULL;
@@ -189,18 +184,14 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					$t_value = formatbytes( $t_value );
 				}
 
-?>
-		<td nowrap="nowrap"><?php echo ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ) ?></td>
-<?php
+				echo '<td nowrap="nowrap">', ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ), '</td>';
 			}
-?>
-</tr>
-<?php
+
+			echo '</tr>';
 		}
 	}
-?>
-</table>
-<?php
+
+	echo '</table>';
 }
 else
 {
