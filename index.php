@@ -46,6 +46,18 @@ function escape_sql_query( $p_param )
 	return( $t_param );
 }
 
+function custom_strstr( $p_haystack, $p_needle, $p_before_needle = FALSE )
+{
+	$t_result = strstr( $p_haystack, $p_needle, $p_before_needle );
+
+	if ( $t_result === FALSE )
+	{
+		$t_result = $p_haystack;
+	}
+
+	return( $t_result );
+}
+
 $serverName = 'SL-SERVER\SQLEXPRESS';
 $connectionOptions = array(
 	'Database' => 'DirListPro',
@@ -59,12 +71,14 @@ if( $conn === FALSE )
 	die( FormatErrors( sqlsrv_errors() ) );
 }
 
+$t_sql_sort_option = ( ( !empty( $_GET[ 'sort' ] ) && !empty( $_GET[ 'sortorder' ] ) ) ? $_GET[ 'sort' ] . ' ' . $_GET[ 'sortorder' ] . ', ' : NULL );
+
 if ( empty( $_GET[ 'table' ] ) )
 {
 	$t_sql = '
 SELECT name, create_date, modify_date
 FROM sys.tables
-ORDER BY ' . ( ( !empty( $_GET[ 'sort' ] ) ) ? $_GET[ 'sort' ] . ' desc, ' : NULL ) . 'name asc';
+ORDER BY ' . $t_sql_sort_option . 'name asc';
 }
 else
 {
@@ -83,7 +97,7 @@ SELECT Path, Name, Extension, Count, Size
 FROM ' . $_GET[ 'table' ] . '
 WHERE ( Path IS NULL AND Name LIKE N\'' . $t_directory . '%\' ESCAPE \'\\\' ) OR
 	Path LIKE N\'' . $t_directory . '\' ESCAPE \'\\\'
-ORDER BY ' . ( ( !empty( $_GET[ 'sort' ] ) ) ? $_GET[ 'sort' ] . ' desc, ' : NULL ) . 'Path asc, Name asc';
+ORDER BY ' . $t_sql_sort_option . 'Path asc, Name asc';
 }
 
 $t_queryresult = sqlsrv_query( $conn, $t_sql );
@@ -113,7 +127,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					$t_sort_option = FALSE;
 				}
 
-				echo '<th nowrap="nowrap">', ( ( $t_sort_option === TRUE ) ? '<a href="?' . $_SERVER[ 'QUERY_STRING' ] . '&sort=' . urlencode( $t_key ) . '">' : NULL ), $t_key, ( ( $t_sort_option === TRUE ) ? '</a>' : NULL ), '</th>';
+				echo '<th nowrap="nowrap">', ( ( $t_sort_option === TRUE ) ? '<a href="' . $_SERVER[ 'PHP_SELF' ] . '?' . custom_strstr( $_SERVER[ 'QUERY_STRING' ], '&sort=', TRUE ) . '&sort=' . urlencode( $t_key ) . '&sortorder=' . ( ( isset( $_GET[ 'sort' ], $_GET[ 'sortorder' ] ) && $_GET[ 'sort' ] === $t_key && $_GET[ 'sortorder' ] === 'desc' ) ? 'asc' : 'desc' ) . '">' : NULL ), $t_key, ( ( $t_sort_option === TRUE ) ? '</a>' : NULL ), '</th>';
 			}
 			$t_printed_header = TRUE;
 
@@ -173,11 +187,6 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 
 				if ( strcasecmp( $t_key, 'name' ) === 0 && ( !isset( $t_row[ 'Path' ] ) ) )
 				{
-					if ( isset( $_GET[ 'directory' ] ) )
-					{
-						$t_print_row = FALSE;
-					}
-
 					$t_param = urlencode( $t_value );
 					if ( !empty( $_GET[ 'table' ] ) )
 					{
@@ -190,7 +199,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					$t_value = formatbytes( $t_value );
 				}
 
-				echo '<td nowrap="nowrap">', ( ( isset( $t_param ) ) ? '<a href="?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ), '</td>';
+				echo '<td nowrap="nowrap">', ( ( isset( $t_param ) ) ? '<a href="' . $_SERVER[ 'PHP_SELF' ] . '?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ), '</td>';
 			}
 
 			echo '</tr>';
