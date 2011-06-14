@@ -1,4 +1,12 @@
 <?php
+$c_serverName = 'SL-SERVER\SQLEXPRESS';
+$connectionOptions = array(
+	'Database' => 'DirListPro',
+	'CharacterSet' => 'UTF-8',
+//	'UID' => '',
+//	'PWD' => '',
+);
+
 header("Content-type: text/html; charset=utf-8;\n"); 
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
@@ -58,14 +66,8 @@ function custom_strstr( $p_haystack, $p_needle, $p_before_needle = FALSE )
 	return( $t_result );
 }
 
-$serverName = 'SL-SERVER\SQLEXPRESS';
-$connectionOptions = array(
-	'Database' => 'DirListPro',
-	'CharacterSet' => 'UTF-8',
-);
-
 /* Connect using Windows Authentication. */
-$conn = sqlsrv_connect( $serverName, $connectionOptions );
+$conn = sqlsrv_connect( $c_serverName, $connectionOptions );
 if( $conn === FALSE )
 {
 	die( FormatErrors( sqlsrv_errors() ) );
@@ -93,7 +95,7 @@ else
 	}
 
 	$t_sql = '
-SELECT Path, Name, Extension, Count, Size
+SELECT *
 FROM ' . $_GET[ 'table' ] . '
 WHERE ( Path IS NULL AND Name LIKE N\'' . $t_directory . '%\' ESCAPE \'\\\' ) OR
 	Path LIKE N\'' . $t_directory . '\' ESCAPE \'\\\'
