@@ -86,7 +86,7 @@ else
 {
 	if ( empty( $_GET[ 'directory' ] ) )
 	{
-		$_GET[ 'directory' ] = '_:\\\\';
+		$_GET[ 'directory' ] = '';
 		$t_directory = $_GET[ 'directory' ];
 	}
 	else
@@ -129,7 +129,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					$t_sort_option = FALSE;
 				}
 
-				echo '<th nowrap="nowrap">', ( ( $t_sort_option === TRUE ) ? '<a href="' . $_SERVER[ 'PHP_SELF' ] . '?' . custom_strstr( $_SERVER[ 'QUERY_STRING' ], '&sort=', TRUE ) . '&sort=' . urlencode( $t_key ) . '&sortorder=' . ( ( isset( $_GET[ 'sort' ], $_GET[ 'sortorder' ] ) && $_GET[ 'sort' ] === $t_key && $_GET[ 'sortorder' ] === 'desc' ) ? 'asc' : 'desc' ) . '">' : NULL ), $t_key, ( ( $t_sort_option === TRUE ) ? '</a>' : NULL ), '</th>';
+				echo '<th nowrap="nowrap">', ( ( $t_sort_option === TRUE ) ? '<a href="' /*. $_SERVER[ 'PHP_SELF' ]*/ . '?' . custom_strstr( $_SERVER[ 'QUERY_STRING' ], '&sort=', TRUE ) . '&sort=' . urlencode( $t_key ) . '&sortorder=' . ( ( isset( $_GET[ 'sort' ], $_GET[ 'sortorder' ] ) && $_GET[ 'sort' ] === $t_key && $_GET[ 'sortorder' ] === 'desc' ) ? 'asc' : 'desc' ) . '">' : NULL ), $t_key, ( ( $t_sort_option === TRUE ) ? '</a>' : NULL ), '</th>';
 			}
 			$t_printed_header = TRUE;
 
@@ -152,7 +152,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 //var_dump($t_pos_limitcheck, $_GET[ 'directory' ], $t_directory);
 
 			echo '<tr><td></td><td nowrap="nowrap">
-		<a href="">.</a>
+		<a href="./">.</a>
 	</td></tr>
 	<tr><td></td><td nowrap="nowrap">
 		<a href="?table=', $t_table, '&directory=', urlencode( $t_directory ), '">..</a>
@@ -201,7 +201,7 @@ if( sqlsrv_has_rows( $t_queryresult ) )
 					$t_value = formatbytes( $t_value );
 				}
 
-				echo '<td nowrap="nowrap">', ( ( isset( $t_param ) ) ? '<a href="' . $_SERVER[ 'PHP_SELF' ] . '?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ), '</td>';
+				echo '<td nowrap="nowrap">', ( ( isset( $t_param ) ) ? '<a href="' /*. $_SERVER[ 'PHP_SELF' ]*/ . '?table=' . $t_param . '">' : NULL ), ( ( is_object( $t_value ) ) ? $t_value->format( 'd-m-Y H:i:s' ) : $t_value ), ( ( isset( $t_param ) ) ? '</a>' : NULL ), '</td>';
 			}
 
 			echo '</tr>';
